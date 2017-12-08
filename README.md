@@ -29,14 +29,15 @@ Covers (open/close only)
 Scripts
 Groups (on/off)
 ```
-As I said before, for now, the application is adapted to my own needs. Now it is localized to the languages en-GB, en-US and es-ES. There are created 4 "rooms" called Living room, Dining room, Terrace and Water heaters. Within these "rooms" will be created the entities that I have configured for each of them.
+As I said before, for now, the application is adapted to my own needs. Now it is localized to the languages en-GB, en-US and es-ES. There are created 4 "rooms" called Living room, Dining room, Terrace and Water heaters. Within these "rooms" will be created the entities that I have configured for each of them. After a light, switch or whatever is switched on or off, the entitis will update automatically to show you the changes.
+
 Logically this will only work correctly for my own Home Assistant server and it would be necessary to modify the source code to adapt it to the needs of each user. It is not complicated at all.
 
 In the future this will not be necessary ... I hope!
 
 ## Screenshots
-![Screenshot](screenshots/home.png?raw=true)
-![Screenshot](screenshots/lights.png?raw=true)
+![Screenshot](screenshots/home_scree.png?raw=true)
+![Screenshot](screenshots/setup_screen.png?raw=true)
 
-![Screenshot](screenshots/switches.png?raw=true)
-![Screenshot](screenshots/covers.png?raw=true)
+![Screenshot](screenshots/dinning_room_screen.png?raw=true)
+![Screenshot](screenshots/heaters_screen.png?raw=true)
