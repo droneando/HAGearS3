@@ -31,10 +31,10 @@ var ViewManager = (function() {
 	 * Create an entity list and register the click handlers for each entity in the list
 	 * @param metadata View metadata
 	 */
-	ViewManager.prototype.create = function(metadata) {
-		createDom(this.entities, metadata);
-		registerEventHandlers(metadata.select, metadata.deselect);
-		this.currentPage = metadata.name;
+	ViewManager.prototype.create = function(room) {
+		createDom(this.entities, room);
+		registerEventHandlers();
+		this.currentPage = room;
 	};
 	
 	/**
@@ -44,7 +44,7 @@ var ViewManager = (function() {
 	ViewManager.prototype.update = function(entities) {
 		this.entities = entities;
 		if (this.currentPage) {
-			this.create(ViewMetadata[this.currentPage]);
+			this.create(this.currentPage);
 			
 			// This is necessary since we blow the dom away. It makes the snaplist work again
 			// The snaplist meaning, it selects an item as you scroll. Also handles marquee scrolling
@@ -53,34 +53,56 @@ var ViewManager = (function() {
 			snapList.refresh();
 		}
 	}
+	
+	//Helper to find index of element
+	function findWithAttr(array, attr, value) {
+	    for(var i = 0; i < array.length; i += 1) {
+	        if(array[i][attr] === value) {
+	            return i;
+	        }
+	    }
+	    return -1;
+	}
 
 	// Helper method to create the list dom from the entities
-	function createDom(entities, metadata) {
-		var filterString = metadata.name + ".";
-		var filteredEntities = entities.filter(function(entity){
-			if (entity.entity_id.startsWith(filterString)) {
-				return true;
-			}
-		}).sort(function(entity1, entity2){
-			if (entity1.attributes.friendly_name.toLowerCase() < entity2.attributes.friendly_name.toLowerCase()) return -1;
-			if (entity1.attributes.friendly_name.toLowerCase() > entity2.attributes.friendly_name.toLowerCase()) return 1;
-			return 0;
-		});
+	function createDom(entities, room) {
+		var roomEntities;
+		switch (room) {
+		    case "living_room":
+		    	roomEntities = living_roomEntities;
+		        break; 
+		    case "dinning_room":
+		    	roomEntities = dinning_roomEntities;
+		        break; 
+		    case "terrace":
+		    	roomEntities = terraceEntities;
+		        break; 
+		    case "heaters":
+		    	roomEntities = heatersEntities;
+		        break;
+		}
 		
 		var domString = "";
-		for (var i=0;i<filteredEntities.length;i++) {
-			domString = domString + createListItem(filteredEntities[i], metadata);
+		for (var i=0;i<roomEntities.length;i++) {
+			var element = roomEntities[i];
+			var a = findWithAttr(entities, "entity_id", element);
+			
+			if (a != -1) {
+				domString = domString + createListItem(entities[a], ViewMetadata[element]);
+			}
 		}
 		
 		$('#entity-list').html(domString);
-		$('#entity-list-title').html(metadata.title);
+		$('#entity-list-title').html(TIZEN_L10N[room]);
 	}
 	
 	// Helper to register click handlers for the list items
-	registerEventHandlers = function(select, deselect) {
+	registerEventHandlers = function() {
 		$('.entity-list-item').click(function(e) {
 			var li = e.currentTarget;
 			var entity_id = li.dataset.entityId;
+			var select = ViewMetadata[entity_id].select;
+			var deselect = ViewMetadata[entity_id].deselect;
 			// We have to flip the value since the input has changed when we get the event
 			var selected = li.classList.contains("selected");
 			if (selected) {
@@ -92,6 +114,24 @@ var ViewManager = (function() {
 				select.call(HAServices, entity_id);
 				li.classList.add("selected");
 			}
+
+			needRefresh = true;
+			
+			//Entities refreshing. NOT WORKING - LOOP
+			/*if (ViewMetadata[entity_id].refresh == "yes") {
+				// show loading indicator
+				//$('#entity-spinner').removeClass('hidden');
+				
+				HAServices.getEntities(function(data){
+					if (data){
+						this.update(data);
+					}
+					//this.update(data);
+					
+					// Hide loading indicator
+					//$('#entity-spinner').addClass('hidden');
+				});
+			}*/
 		});
 	}
 		
@@ -103,7 +143,7 @@ var ViewManager = (function() {
 		 return TEMPLATE.replace(/%1/g, selected)
 		 				.replace(/%2/g, entity.entity_id)
 		 				.replace(/%3/g, entity.attributes.friendly_name)
-		 				.replace(/%4/g, metadata.name)
+		 				.replace(/%4/g, metadata.iconType)
 		 				.replace(/%5/g, icon);
 	}
 	
