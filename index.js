@@ -7,11 +7,7 @@ $(function () {
 		
 		// Settings button listener
 		$('#setup-button').click(function(){
-			tau.changePage('setup');
-			var creds = HAServices.getCredentials();
-			var url = creds.url;
-			
-			$('#setup-url').val(url);
+			showSetup();
 		});
 		
 		// Settings save button listener
@@ -30,7 +26,7 @@ $(function () {
 			var view = a.dataset.id;
 			
 			if (viewManager && view) {
-				viewManager.create(ViewMetadata[view]);
+				viewManager.create(view);
 				tau.changePage('entities');
 			}
 			
@@ -38,13 +34,7 @@ $(function () {
 		
 		// refresh button on entities page
 		$('#refresh-button').click(function(){
-			// Show loading indicator
-			$('#entity-spinner').removeClass('hidden');
-			HAServices.getEntities(function(data){
-				viewManager.update(data);
-				// Hide loading indicator
-				$('#entity-spinner').addClass('hidden');
-			});
+			refresh();
 		});
 		
 		// Back button
@@ -55,10 +45,38 @@ $(function () {
 	                    .querySelector('.ui-popup-active')) {
 	            	tizen.application.getCurrentApplication().exit();
 	            } else {
+	            	if (needRefresh){
+	            		refresh();
+	            		needRefresh = false;
+	            	}
 	                history.back();
 	            }
 	        }
 	    });
+	}
+	
+	//Refresh function
+	function refresh() {
+		// Show loading indicator
+		$('#entity-spinner').removeClass('hidden');
+		HAServices.getEntities(function(data){
+			viewManager.update(data);
+			// Hide loading indicator
+			$('#entity-spinner').addClass('hidden');
+		});
+	}
+	
+	//Show Setup
+	function showSetup() {
+		tau.changePage('setup');
+		var creds = HAServices.getCredentials();
+		var url = creds.url;
+		if (url) {
+			$('#setup-url').val(url);
+		} else {
+			//Set default value for url
+			$('#setup-url').val("http://192.168.1.165:8123");
+		}
 	}
 	
 	// Initial load
@@ -73,15 +91,15 @@ $(function () {
 			// TODO more status to message conversions?
 			if (!message) {
 				if (xhr.status === 0) {
-					message = "Check network connection or home assistant url in setup";
+					message = TIZEN_L10N['check_network'];
 				} else {
-					message = "An unknown error has occured.";
+					message = TIZEN_L10N['unknow_error'];
 				}
 			}
 			
 			// Show error popup
 			$('#main-spinner').addClass('hidden');
-			$('#error-popup-contents').text("An error has occured.\n" + "Status code: " + xhr.status + "\n" + "Messsage: " + message);
+			$('#error-popup-contents').text(TIZEN_L10N['error'] + TIZEN_L10N['status_code'] + xhr.status + "\n" + TIZEN_L10N['message'] + message);
 			tau.changePage('error-popup');
 		});
 	}
@@ -93,9 +111,10 @@ $(function () {
 		if (runBefore) {
 			initialFetch();
 		} else {
-			$('#error-popup-contents').text("This appears to be your first time running HomeAssistant! Scroll down to the bottom on the homepage and enter your url and password in the settings menu. You will need to disable autocorrect to enter the url.");
+			$('#error-popup-contents').text(TIZEN_L10N['first_time']);
 			tau.changePage('error-popup');
 			localStorage.setItem('ha-run-before', true);
+			showSetup();
 		}
 	}
 	
