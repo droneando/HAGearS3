@@ -59,6 +59,7 @@ body {
 	margin-left: 10px;
 	overflow: hidden;
 	text-align: left;
+	font-size: 0.85em;
 }
 
 .ui-listview li div.ui-snap-listview-selected .ui-marquee {
